@@ -1,30 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Post from './Post';
+import axios from "axios";
 import nikhil from '../../testimages/nikhil_profile_pic.png';
 import sachit from '../../testimages/post1.jpeg';
 import { Avatar, Stack, Button, Box, Typography, Paper } from "@mui/material";
 import './ForumPage.css';
 function ForumPage() {
-    const posts = [
-        {
-            id: 1,
-            username: 'user1',
-            location: 'New York',
-            profile_icon: nikhil,
-            caption: 'hifdsjfksadjfkl;sajfkl;sajfklsa;jfkl;asjf;lsadjfls;afkjklas;dfjksl;jfklds;afjklas;dfjkal;ajdfjskald;fjsakl;dfjksl;ajfkl;sajfkl;sajdklas',
-            likesCount: 100,
-            post_img: sachit,
-            workout: "squats",
-        },
-        {
-            id: 2,
-            username: 'user2',
-            location: 'De Neve',
-            profile_icon: nikhil,
-            caption: 'hifdsjfksadjfkl;sajfkl;sajfklsa;jfkl;asjf;lsadjfls;afkjklas;dfjksl;jfklds;afjklas;dfjkal;ajdfjskald;fjsakl;dfjksl;ajfkl;sajfkl;sajdklas',
-            likesCount: 200,
-        }
-    ];
+
+    const [posts, setPosts] = useState([]);
+    useEffect(() => {
+        const fetchRandomPost = async () => {
+            try{
+                const response = await axios.get('http://localhost:8088/posts/fetchRandomPost');
+                setPosts(response.data);
+            } catch(error) {
+                console.error("Error fetching random posts:", error);
+            }
+        };
+        fetchRandomPost();
+    }, []);
 
     return(
         <Box className="forum-page" sx={{ flex: 1, padding: 5, paddingLeft: 40 }}>

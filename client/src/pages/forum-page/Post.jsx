@@ -61,7 +61,7 @@ const PhotoPost = ({
         />
 
         <CardContent>
-          <PostActions />
+          <PostActions username={username} caption={caption} initialLikeCount={likecount} />
           <Typography variant="body2" color="white" marginLeft={1}>
             {likecount}
           </Typography>
@@ -114,7 +114,7 @@ const TextPost = ({ username, workout, caption, likecount, user, size }) => {
           >
             {caption}
           </Typography>
-          <PostActions />
+          <PostActions username={username} caption={caption} initialLikeCount={likecount} />
           <Typography variant="body2" color="white" marginLeft={1}>
             {likecount}
           </Typography>

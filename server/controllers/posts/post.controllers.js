@@ -1,17 +1,32 @@
 const Posts = require("../../models/postModel.js");
 
+const getPost = async(req, res) => {
+    try{
+        const { username, caption} = req.query;
+        const post = await Posts.findOne({ username: username, caption: caption})
+
+        if (!post){
+            return res.status(404).json({message: "Post not found"});
+        }
+        res.json(post);
+    } catch (error) {
+        res.status(500).json({message: "Error getting post: ", error});
+    }
+}
+
 const likePost = async(req, res) => {
     try{
-        const { postId } = req.body;
+        const { postId } = req.query;
         if (!postId) { 
+            console.log(req);
             return res.status(400).json({ error: "Bad Post ID." });
         }
 
-        const updatedPost = await Posts.findByIdAndUpdate(
-            postId,
+        const updatedPost = await Posts.findOneAndUpdate(
+            { postId },
             { $inc: { likesCount: 1 } },
             { new: true }
-        )
+        );
         
         if (!updatedPost) { 
             return res.status(404).json({ error: "Post not found." });
@@ -47,6 +62,15 @@ const createPost = async (req, res) => {
         console.error("Error creating post:", error);
         res.status(500).json({ error: "Internal server error." });
     }
-}
+};
 
-module.exports = {likePost, createPost};
+const fetchRandomPost = async (req, res) => {
+    try{
+        const randomPosts = await Posts.aggregate([{$sample: {size: 1}}]);
+        res.json(randomPosts);
+    } catch(error){
+        res.status(500).json({message: "Error fetching random post", error});
+    }
+};
+
+module.exports = {likePost, createPost, getPost, fetchRandomPost};
