@@ -40,10 +40,13 @@ const postSchema = mongoose.Schema({
     enum: ['small', 'medium', 'large'], 
     default: 'medium'
   },
-  comments: {
-    type: Array,
-    default: []
-  }
+  comments: [
+    {
+      type: String,
+      default: [],
+      sparse: true,
+    },
+  ]
 });
 
 const Posts = mongoose.model("Posts", postSchema);

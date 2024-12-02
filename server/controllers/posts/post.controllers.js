@@ -103,4 +103,15 @@ const fetchRandomPost = async (req, res) => {
   }
 };
 
-module.exports = { likePost, createPost, getPost, fetchRandomPost };
+const fetchAndSortPosts = async(req, res) => {
+  try {
+    const posts = await Posts.find().sort({createdAt: -1});
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching posts", error});
+  }
+}
+
+
+
+module.exports = { likePost, createPost, getPost, fetchRandomPost, fetchAndSortPosts };

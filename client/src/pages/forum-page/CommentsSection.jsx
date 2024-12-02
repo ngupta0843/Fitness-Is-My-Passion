@@ -1,50 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Button, Card, CardContent, Typography, IconButton, Box } from '@mui/material';
 import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
 import AddCommentOutlinedIcon from '@mui/icons-material/AddCommentOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import axios from 'axios';
 
-const CommentsSection = () => {
+const CommentsSection = ({ postID, commentorEmail }) => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
     const [hideComments, setHideComments] = useState(false);
 
-    const handleAddComment = () => {
+    console.log(postID);
+
+    useEffect(() => {
+        handleGetComments();
+    }, []); 
+
+    const handleAddComment = async () => {
         if (newComment.trim()) {
-            setComments([...comments, { text: newComment, likes: 0, replies: [], hideReplies: false }]);
-            setNewComment("");
+            try {
+                await axios.post("http://localhost:8088/comment/createComment", {
+                    userEmail: commentorEmail,
+                    commentMessage: newComment,
+                    parentPost: postID,
+                });
+
+                handleGetComments();
+
+                setNewComment(""); // Clear the input field
+            } catch (error) {
+                console.error("Error adding comment:", error.response?.data || error.message);
+            }
         }
+    };
+
+    const handleGetComments = async () => {
+        try {
+            const response = await axios.post("http://localhost:8088/comment/getComments", {
+                postID: postID,
+            });
+            console.log("Fetched comments:", response.data);
+
+            setComments(response.data.map(comment => ({
+                text: comment.message,
+                likes: 0,
+                replies: [],
+                hideReplies: false,
+            })));
+        } catch (error) {
+            console.error("Error fetching comments:", error.response?.data || error.message);
+        }
+    };
+
+    const toggleHideComments = () => {
+        setHideComments(!hideComments);
     };
 
     const handleLikeComment = (index) => {
         const updatedComments = [...comments];
         updatedComments[index].likes++;
         setComments(updatedComments);
-    };
-
-    const handleReply = (index, replyText) => {
-        const updatedComments = [...comments];
-        if (replyText.trim()) {
-            updatedComments[index].replies.push({ text: replyText, likes: 0 });
-            setComments(updatedComments);
-        }
-    };
-
-    const handleLikeReply = (commentIndex, replyIndex) => {
-        const updatedComments = [...comments];
-        updatedComments[commentIndex].replies[replyIndex].likes++;
-        setComments(updatedComments);
-    };
-
-    const toggleHideReplies = (index) => {
-        const updatedComments = [...comments];
-        updatedComments[index].hideReplies = !updatedComments[index].hideReplies;
-        setComments(updatedComments);
-    };
-
-    const toggleHideComments = () => {
-        setHideComments(!hideComments);
     };
 
     return (
@@ -91,73 +107,12 @@ const CommentsSection = () => {
                                             {comment.likes}
                                         </Typography>
                                     </IconButton>
-                                    <Button
-                                        size="small"
-                                        variant="text"
-                                        onClick={() => toggleHideReplies(index)}
-                                        sx={{ color: '#ffffff' }}
-                                        startIcon={comment.hideReplies ? <VisibilityOutlinedIcon /> : <VisibilityOffOutlinedIcon />}
-                                    >
-                                        {comment.hideReplies ? "Show Replies" : "Hide Replies"}
-                                    </Button>
                                 </Box>
-                                {!comment.hideReplies && (
-                                    <ReplySection
-                                        commentIndex={index}
-                                        replies={comment.replies}
-                                        handleReply={handleReply}
-                                        handleLikeReply={handleLikeReply}
-                                    />
-                                )}
                             </CardContent>
                         </Card>
                     ))}
                 </>
             )}
-        </Box>
-    );
-};
-
-const ReplySection = ({ commentIndex, replies, handleReply, handleLikeReply }) => {
-    const [newReply, setNewReply] = useState("");
-
-    return (
-        <Box sx={{ ml: 4 }}>
-            <Box display="flex" gap={2} mt={2}>
-                <TextField
-                    fullWidth
-                    variant="outlined"
-                    value={newReply}
-                    onChange={(e) => setNewReply(e.target.value)}
-                    placeholder="Write a reply..."
-                    sx={{ input: { color: '#ffffff' }, backgroundColor: '#333333', borderRadius: 1 }}
-                />
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => {
-                        handleReply(commentIndex, newReply);
-                        setNewReply("");
-                    }}
-                >
-                    Reply
-                </Button>
-            </Box>
-            {replies.map((reply, replyIndex) => (
-                <Card key={replyIndex} sx={{ mt: 2, backgroundColor: '#1e1e1e', color: '#ffffff' }}>
-                    <CardContent>
-                        <Typography variant="body2">{reply.text}</Typography>
-                        <Box display="flex" gap={1} mt={1}>
-                            <IconButton onClick={() => handleLikeReply(commentIndex, replyIndex)} sx={{ color: '#ffffff' }}>
-                                <ThumbUpAltOutlinedIcon />
-                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                    {reply.likes}
-                                </Typography>
-                            </IconButton>
-                        </Box>
-                    </CardContent>
-                </Card>
-            ))}
         </Box>
     );
 };

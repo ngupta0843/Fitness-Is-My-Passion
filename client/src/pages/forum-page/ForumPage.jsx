@@ -1,33 +1,42 @@
 import React, { useEffect, useState } from "react";
 import Post from "./Post";
 import axios from "axios";
-import nikhil from "../../testimages/nikhil_profile_pic.png";
-import sachit from "../../testimages/post1.jpeg";
-import { Avatar, Stack, Button, Box, Typography, Paper } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import "./ForumPage.css";
+
 function ForumPage() {
   const [posts, setPosts] = useState([]);
+
+  // Fetch sorted posts on component mount
   useEffect(() => {
-    const fetchRandomPost = async () => {
+    const fetchSortedPosts = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8088/posts/fetchRandomPost"
+          "http://localhost:8088/posts/fetchAndSortPosts"
         );
         setPosts(response.data);
       } catch (error) {
-        console.error("Error fetching random posts:", error);
+        console.error("Error fetching posts:", error);
       }
     };
-    fetchRandomPost();
+    fetchSortedPosts();
   }, []);
 
   return (
-    <Box className="forum-page" sx={{ flex: 1, padding: 5, paddingLeft: 40 }}>
-      <Stack spacing={3}>
-        {posts.map((post, index) => (
-          <Post
-            post={post}
-          />
+    <Box className="forum-page">
+      {/* Top Post */}
+      {posts.length > 0 && (
+        <div className="top-post">
+          <Post post={posts[0]} />
+        </div>
+      )}
+
+      {/* Other Posts */}
+      <Stack spacing={3} className="post-container">
+        {posts.slice(1).map((post, index) => (
+          <div className="post" key={index}>
+            <Post post={post} />
+          </div>
         ))}
       </Stack>
     </Box>
